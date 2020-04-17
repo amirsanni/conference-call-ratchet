@@ -151,8 +151,6 @@ window.addEventListener('load', ()=>{
                 myStream = stream;
     
                 h.setLocalStream(stream);
-
-                h.createDemoRemotes(stream, 5);
             }).catch((e)=>{
                 console.error(`stream error: ${e}`);
             });
