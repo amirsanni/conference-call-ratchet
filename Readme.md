@@ -1,5 +1,5 @@
 # Conference Call
-A conference call implementation using WebRTC, [Ratchet Web Socket](https://socketo.me).
+A conference call implementation using WebRTC, [Ratchet Web Socket](https://github.com/ratchetphp/Ratchet).
 
 
 # Getting Started
