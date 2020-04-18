@@ -65,25 +65,7 @@ class Comm implements MessageComponentInterface {
             //OR
             //if room does not exist, create it by adding user to it
             if((array_key_exists($room, $this->rooms) && !in_array($from, $this->rooms[$room])) || !array_key_exists($room, $this->rooms)){                
-                if(isset($this->rooms[$room]) && count($this->rooms[$room]) >= 2){
-                    //maximum number of connection reached
-                    $msg_to_send = json_encode(['action'=>'subRejected']);
                 
-                    $from->send($msg_to_send);
-                }
-                
-                else{
-                    $this->rooms[$room][] = $from;//subscribe user to room
-                
-                    $this->notifyUsersOfConnection($room, $from);
-                }
-            }
-            
-            else{
-                //tell user he has subscribed on another device/browser
-                $msg_to_send = json_encode(['action'=>'subRejected']);
-                
-                $from->send($msg_to_send);
             }
         }
         
