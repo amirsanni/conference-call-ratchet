@@ -36,8 +36,6 @@ class Comm implements MessageComponentInterface {
     public function onOpen(ConnectionInterface $conn) {
         // Store the new connection
         $this->clients->attach($conn);
-
-        $conn->send(json_encode(['action'=>'socketId', 'socketId'=>$conn->resourceId]));
     }
 
     /*
@@ -67,7 +65,7 @@ class Comm implements MessageComponentInterface {
             if((array_key_exists($room, $this->rooms) && !in_array($from, $this->rooms[$room])) || !array_key_exists($room, $this->rooms)){                
                 $this->rooms[$room][] = $from;//subscribe user to room
                 
-                $this->notifyUsersOfConnection($room, $from);
+                $this->notifyUsersOfConnection($room, $from, $data->sender);
             }
             
             else{
@@ -150,12 +148,13 @@ class Comm implements MessageComponentInterface {
      * 
      * @param type $room
      * @param type $from
+     * @param string $sender
      */
-    private function notifyUsersOfConnection($room, $from){
+    private function notifyUsersOfConnection($room, $from, $sender){
                         
         //echo "User subscribed to room ".$room ."\n";
 
-        $msg_to_broadcast = json_encode(['action'=>'newSub', 'room'=>$room]);
+        $msg_to_broadcast = json_encode(['action'=>'newSub', 'room'=>$room, 'socketId'=>$sender]);
 
         //notify user that someone has joined room
         foreach($this->rooms[$room] as $client){

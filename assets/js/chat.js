@@ -14,7 +14,7 @@ window.addEventListener('load', ()=>{
     const username = sessionStorage.getItem('username');
     
     h.getIceServer().then((ice)=>{
-        servers.iceServers = ice;
+        servers.iceServers = [ice];
         console.log(ice);
     }).catch((e)=>{
         console.error(e);
@@ -35,11 +35,11 @@ window.addEventListener('load', ()=>{
             commElem[i].attributes.removeNamedItem('hidden');
         }
 
+        var socketId = username+'__'+h.generateRandomString();
         var pc = [];
 
         let socket = new WebSocket(`${wsUrl}/comm`);
-
-        var socketId = '';
+        
         var myStream =  '';
         var screen = '';
         var recordedStream = [];
@@ -52,7 +52,8 @@ window.addEventListener('load', ()=>{
             //subscribe to room
             socket.send(JSON.stringify({
                 action: 'subscribe',
-                room: room
+                room: room,
+                sender: socketId
             }));
         };
 
@@ -69,11 +70,6 @@ window.addEventListener('load', ()=>{
                 //above check is not necessary since all messages coming to this user are for the user's current room
                 //but just to be on the safe side
                 switch(data.action){
-                    case 'socketId':
-                        socketId = data.socketId;
-                        console.info(data);
-                    break;
-
                     case 'newSub':
                         socket.send(JSON.stringify({
                             action: 'newUserStart',
