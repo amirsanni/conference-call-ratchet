@@ -103,7 +103,7 @@ window.addEventListener('load', ()=>{
                             if(data.description.type === 'offer'){
                                 data.description ? await pc[data.sender].setRemoteDescription(new RTCSessionDescription(data.description)) : '';
             
-                                h.getUserFullMedia().then(async (stream)=>{
+                                h.getUserFullMedia().then((stream)=>{
                                     if(!document.getElementById('local').srcObject){
                                         h.setLocalStream(stream);
                                     }
