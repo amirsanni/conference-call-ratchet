@@ -66,73 +66,90 @@ window.addEventListener('load', ()=>{
         socket.onmessage = async (e)=>{
             var data = JSON.parse(e.data);
             
-            switch(data.action){
-                case 'newSub':
-                    socket.send(JSON.stringify({
-                        action: 'newUserStart',
-                        to:data.socketId, 
-                        sender:socketId
-                    }));
+            if(data.room && (data.room == room)){
+                switch(data.action){
+                    case 'newSub':
+                        socket.send(JSON.stringify({
+                            action: 'newUserStart',
+                            to:data.socketId, 
+                            sender:socketId,
+                            room: room
+                        }));
 
-                    pc.push(data.socketId);
-                    init(true, data.socketId);
+                        pc.push(data.socketId);
+                        init(true, data.socketId);
 
-                break;
-
-                case 'newUserStart':
-                    pc.push(data.sender);
-                    init(false, data.sender);
-                break;
-
-                case 'ice candidates':
-                    //message is iceCandidate
-                    data.candidate ? await pc[data.sender].addIceCandidate(new RTCIceCandidate(data.candidate)) : '';
-                    
                     break;
 
-                case 'sdp':
-                    //message is signal description
-                    if(data.description.type === 'offer'){
-                        data.description ? await pc[data.sender].setRemoteDescription(new RTCSessionDescription(data.description)) : '';
-    
-                        h.getUserFullMedia().then(async (stream)=>{
-                            if(!document.getElementById('local').srcObject){
-                                h.setLocalStream(stream);
-                            }
-    
-                            //save my stream
-                            myStream = stream;
-    
-                            stream.getTracks().forEach((track)=>{
-                                pc[data.sender].addTrack(track, stream);
-                            });
-    
-                            let answer = await pc[data.sender].createAnswer();
-                            
-                            await pc[data.sender].setLocalDescription(answer);
-    
-                            socket.send(JSON.stringify({
-                                action: 'sdp',
-                                description:pc[data.sender].localDescription, 
-                                to:data.sender, 
-                                sender:socketId
-                            }));
-                        }).catch((e)=>{
-                            console.error(e);
-                        });
-                    }
-    
-                    else if(data.description.type === 'answer'){
-                        await pc[data.sender].setRemoteDescription(new RTCSessionDescription(data.description));
-                    }
-                    
-                break;
+                    case 'newUserStart':
+                        if(data.to == socketId){
+                            pc.push(data.sender);
+                            init(false, data.sender);
+                        }
+                    break;
 
-                case 'chat':
-                    //it is a text chat
-                    h.addChat(data, 'remote');
-                    
-                break;
+                    case 'ice candidates':
+                        //message is iceCandidate
+                        if(data.to == socketId){
+                            data.candidate ? await pc[data.sender].addIceCandidate(new RTCIceCandidate(data.candidate)) : '';
+                        }
+                        
+                    break;
+
+                    case 'sdp':
+                        //message is signal description
+                        console.log(data.description.type);
+                        if(data.to == socketId){
+                            if(data.description.type === 'offer'){
+                                data.description ? await pc[data.sender].setRemoteDescription(new RTCSessionDescription(data.description)) : '';
+            
+                                h.getUserFullMedia().then(async (stream)=>{
+                                    if(!document.getElementById('local').srcObject){
+                                        h.setLocalStream(stream);
+                                    }
+            
+                                    //save my stream
+                                    myStream = stream;
+            
+                                    stream.getTracks().forEach((track)=>{
+                                        pc[data.sender].addTrack(track, stream);
+                                    });
+            
+                                    let answer = await pc[data.sender].createAnswer();
+                                    
+                                    await pc[data.sender].setLocalDescription(answer);
+            
+                                    socket.send(JSON.stringify({
+                                        action: 'sdp',
+                                        description:pc[data.sender].localDescription, 
+                                        to:data.sender, 
+                                        sender:socketId,
+                                        room: room
+                                    }));
+                                }).catch((e)=>{
+                                    console.error(e);
+                                });
+                            }
+            
+                            else if(data.description.type === 'answer'){
+                                await pc[data.sender].setRemoteDescription(new RTCSessionDescription(data.description));
+                            }
+                        }
+                        
+                    break;
+
+                    case 'chat':
+                        //it is a text chat
+                        h.addChat(data, 'remote');
+                        
+                    break;
+
+
+                    case 'imOffline':
+                        //remove video
+                        h.closeVideo(data.sender);
+                    break;
+                }
             }
         };
 
@@ -210,7 +227,8 @@ window.addEventListener('load', ()=>{
                         action: 'sdp',
                         description:pc[partnerName].localDescription, 
                         to:partnerName, 
-                        sender:socketId
+                        sender:socketId,
+                        room: room
                     }));
                 };
             }
@@ -223,14 +241,15 @@ window.addEventListener('load', ()=>{
                     action: 'ice candidates',
                     candidate: candidate, 
                     to:partnerName,
-                    sender:socketId
+                    sender:socketId,
+                    room: room
                 }));
             };
 
 
 
             //add
-            pc[partnerName].ontrack = (e)=>{
+            pc[partnerName].ontrack = (e)=>{console.log(e);
                 let str = e.streams[0];
                 if(document.getElementById(`${partnerName}-video`)){
                     document.getElementById(`${partnerName}-video`).srcObject = str;
@@ -264,7 +283,7 @@ window.addEventListener('load', ()=>{
 
 
 
-            pc[partnerName].onconnectionstatechange = (d)=>{
+            pc[partnerName].onconnectionstatechange = (d)=>{console.log(d);
                 switch(pc[partnerName].iceConnectionState){
                     case 'disconnected':
                     case 'failed':
@@ -279,7 +298,7 @@ window.addEventListener('load', ()=>{
 
 
 
-            pc[partnerName].onsignalingstatechange = (d)=>{
+            pc[partnerName].onsignalingstatechange = (d)=>{console.log(d);
                 switch(pc[partnerName].signalingState){
                     case 'closed':
                         console.log("Signalling state is 'closed'");
