@@ -66,11 +66,6 @@
     padding-top: 40px;
 }
 
-.card{
-    width: 33.33%;
-    z-index: 1000;
-}
-
 
 .remote-video{
     width:100%;
@@ -225,5 +220,13 @@
 
     .local-video{
         width:40vw;
+    }
+}
+
+
+@media (min-width: 768px){
+    .card{
+        width: 50%;
+        z-index: 1000;
     }
 }

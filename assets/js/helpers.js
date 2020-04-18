@@ -7,6 +7,7 @@ export default {
     closeVideo(elemId){
         if(document.getElementById(elemId)){
             document.getElementById(elemId).remove();
+            this.adjustVideoElemSize();
         }
     },
 
@@ -271,6 +272,30 @@ export default {
         
         localVidElem.srcObject = stream;
         mirrorMode ? localVidElem.classList.add('mirror-mode') : localVidElem.classList.remove('mirror-mode');
+    },
+
+
+    adjustVideoElemSize(){
+        let elem = document.getElementsByClassName('card');
+        let totalRemoteVideosDesktop = elem.length;
+        let newWidth = totalRemoteVideosDesktop <= 2 ? '50%' : (
+            totalRemoteVideosDesktop == 3 ? '33.33%' : (
+                totalRemoteVideosDesktop <= 8 ? '25%' : (
+                    totalRemoteVideosDesktop <= 15 ? '20%' : (
+                        totalRemoteVideosDesktop <= 18 ? '16%' : (
+                            totalRemoteVideosDesktop <= 23 ? '15%' : (
+                                totalRemoteVideosDesktop <= 32 ? '12%' : '10%'
+                            )
+                        )
+                    )
+                )
+            )
+        );
+
+
+        for(let i = 0; i < totalRemoteVideosDesktop; i++){
+            elem[i].style.width = newWidth;
+        }
     },
 
 

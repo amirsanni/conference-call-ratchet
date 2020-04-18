@@ -278,6 +278,8 @@ window.addEventListener('load', ()=>{
                     
                     //put div in main-section elem
                     document.getElementById('videos').appendChild(cardDiv);
+
+                    h.adjustVideoElemSize();
                 }
             };
 
