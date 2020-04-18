@@ -66,77 +66,73 @@ window.addEventListener('load', ()=>{
         socket.onmessage = async (e)=>{
             var data = JSON.parse(e.data);
             
-            if(data.room === room){
-                //above check is not necessary since all messages coming to this user are for the user's current room
-                //but just to be on the safe side
-                switch(data.action){
-                    case 'newSub':
-                        socket.send(JSON.stringify({
-                            action: 'newUserStart',
-                            to:data.socketId, 
-                            sender:socketId
-                        }));
+            switch(data.action){
+                case 'newSub':
+                    socket.send(JSON.stringify({
+                        action: 'newUserStart',
+                        to:data.socketId, 
+                        sender:socketId
+                    }));
 
-                        pc.push(data.socketId);
-                        init(true, data.socketId);
+                    pc.push(data.socketId);
+                    init(true, data.socketId);
 
+                break;
+
+                case 'newUserStart':
+                    pc.push(data.sender);
+                    init(false, data.sender);
+                break;
+
+                case 'ice candidates':
+                    //message is iceCandidate
+                    data.candidate ? await pc[data.sender].addIceCandidate(new RTCIceCandidate(data.candidate)) : '';
+                    
                     break;
 
-                    case 'newUserStart':
-                        pc.push(data.sender);
-                        init(false, data.sender);
-                    break;
+                case 'sdp':
+                    //message is signal description
+                    if(data.description.type === 'offer'){
+                        data.description ? await pc[data.sender].setRemoteDescription(new RTCSessionDescription(data.description)) : '';
     
-                    case 'ice candidates':
-                        //message is iceCandidate
-                        data.candidate ? await pc[data.sender].addIceCandidate(new RTCIceCandidate(data.candidate)) : '';
-                        
-                        break;
+                        h.getUserFullMedia().then(async (stream)=>{
+                            if(!document.getElementById('local').srcObject){
+                                h.setLocalStream(stream);
+                            }
     
-                    case 'sdp':
-                        //message is signal description
-                        if(data.description.type === 'offer'){
-                            data.description ? await pc[data.sender].setRemoteDescription(new RTCSessionDescription(data.description)) : '';
-        
-                            h.getUserFullMedia().then(async (stream)=>{
-                                if(!document.getElementById('local').srcObject){
-                                    h.setLocalStream(stream);
-                                }
-        
-                                //save my stream
-                                myStream = stream;
-        
-                                stream.getTracks().forEach((track)=>{
-                                    pc[data.sender].addTrack(track, stream);
-                                });
-        
-                                let answer = await pc[data.sender].createAnswer();
-                                
-                                await pc[data.sender].setLocalDescription(answer);
-        
-                                socket.send(JSON.stringify({
-                                    action: 'sdp',
-                                    description:pc[data.sender].localDescription, 
-                                    to:data.sender, 
-                                    sender:socketId
-                                }));
-                            }).catch((e)=>{
-                                console.error(e);
+                            //save my stream
+                            myStream = stream;
+    
+                            stream.getTracks().forEach((track)=>{
+                                pc[data.sender].addTrack(track, stream);
                             });
-                        }
-        
-                        else if(data.description.type === 'answer'){
-                            await pc[data.sender].setRemoteDescription(new RTCSessionDescription(data.description));
-                        }
-                        
-                    break;
     
-                    case 'chat':
-                        //it is a text chat
-                        h.addChat(data, 'remote');
-                        
-                    break;
-                }  
+                            let answer = await pc[data.sender].createAnswer();
+                            
+                            await pc[data.sender].setLocalDescription(answer);
+    
+                            socket.send(JSON.stringify({
+                                action: 'sdp',
+                                description:pc[data.sender].localDescription, 
+                                to:data.sender, 
+                                sender:socketId
+                            }));
+                        }).catch((e)=>{
+                            console.error(e);
+                        });
+                    }
+    
+                    else if(data.description.type === 'answer'){
+                        await pc[data.sender].setRemoteDescription(new RTCSessionDescription(data.description));
+                    }
+                    
+                break;
+
+                case 'chat':
+                    //it is a text chat
+                    h.addChat(data, 'remote');
+                    
+                break;
             }
         };
 
