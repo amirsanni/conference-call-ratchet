@@ -223,19 +223,6 @@ export default {
         let elem = e.target.parentElement.previousElementSibling;
 
         elem.requestFullscreen() || elem.mozRequestFullScreen() || elem.webkitRequestFullscreen() || elem.msRequestFullscreen();
-        // document.querySelector('#close-single-peer-btn').style.display = 'block';
-
-        // e.target.parentElement.previousElementSibling.classList.remove('remote-video');
-        // e.target.parentElement.previousElementSibling.classList.add('single-peer-video');
-
-        // //hide the other elements
-        // let remoteVideoElems = document.getElementsByClassName('remote-video');
-
-        // if(remoteVideoElems.length){
-        //     for(let i = 0; i < remoteVideoElems.length; i++){
-        //         remoteVideoElems[i].style.display = 'none';
-        //     }
-        // }
     },
 
 
